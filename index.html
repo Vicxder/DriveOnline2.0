@@ -3,38 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Video Stream Viewer</title>
+  <title>Transmisión de Video</title>
 </head>
 <body>
-  <h1>Video Stream</h1>
-  <video id="remote-video" autoplay playsinline controls></video>
-
-  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <h1>Transmisión de Video</h1>
+  <video id="localVideo" autoplay muted></video>
+  <div id="remoteVideos"></div>
+  <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
   <script>
-    // URL del servidor en Replit
-    const SERVER_URL = "https://ca34f74a-7784-4b55-856b-eeff6da108d2-00-nnkn14i87gil.worf.replit.dev/";
+    const socket = io();
 
-    // Conexión con el servidor usando Socket.IO
-    const socket = io(SERVER_URL);
+    // Acceder a la cámara y el micrófono
+    navigator.mediaDevices
+      .getUserMedia({ video: true, audio: true })
+      .then((stream) => {
+        const localVideo = document.getElementById("localVideo");
+        localVideo.srcObject = stream;
+        localVideo.play();
 
-    // Recibir el video desde el servidor
-    socket.on("video-stream", (data) => {
-      console.log("Recibiendo datos de video");
+        // Configurar MediaRecorder para capturar datos del video
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = (event) => {
+          socket.emit("video-stream", event.data);
+        };
 
-      // Crear un objeto URL para el flujo de video
-      const videoBlob = new Blob([data], { type: "video/webm" });
-      const videoUrl = URL.createObjectURL(videoBlob);
+        // Enviar datos cada segundo
+        mediaRecorder.start(1000);
 
-      // Seleccionar el elemento de video y reproducir
-      const videoElement = document.getElementById("remote-video");
-      videoElement.src = videoUrl;
-      videoElement.play();
-    });
-
-    // Manejo de errores de conexión
-    socket.on("connect_error", (error) => {
-      console.error("Error de conexión con el servidor:", error);
-    });
+        // Recibir datos de video desde otros clientes
+        socket.on("video-stream", (data) => {
+          const remoteVideo = document.createElement("video");
+          remoteVideo.src = URL.createObjectURL(new Blob([data]));
+          remoteVideo.autoplay = true;
+          document.getElementById("remoteVideos").appendChild(remoteVideo);
+        });
+      })
+      .catch((err) => console.error("Error al acceder a la cámara:", err));
   </script>
 </body>
 </html>
