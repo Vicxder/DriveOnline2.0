@@ -1,18 +1,12 @@
+<button onclick="sendCommand('adelante')">Adelante</button>
+<button onclick="sendCommand('izquierda')">Izquierda</button>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Autos</title>
-</head>
-<body>
-    <h1>Controla tu Auto a Control Remoto</h1>
-    <button id="adelante">Mover Adelante</button>
-    <button id="detener">Detener</button>
-    <video id="video-stream" autoplay></video>
-    <script src="app.js"></script>
-</body>
-</html>
-
-
+<script>
+    function sendCommand(command) {
+        fetch('https://ca34f74a-7784-4b55-856b-eeff6da108d2-00-nnkn14i87gil.worf.replit.dev/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command })
+        });
+    }
+</script>
