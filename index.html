@@ -3,25 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Transmisión de Video</title>
+  <title>Live Video Stream</title>
 </head>
 <body>
-  <h1>Transmisión en Vivo</h1>
-  <canvas id="videoCanvas"></canvas>
-  <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+  <h1>Live Video Stream</h1>
+  <img id="video" src="" alt="Video Stream" style="width: 100%; max-width: 800px;" />
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
   <script>
-    const canvas = document.getElementById("videoCanvas");
-    const ctx = canvas.getContext("2d");
-    const socket = io("https://ca34f74a-7784-4b55-856b-eeff6da108d2-00-nnkn14i87gil.worf.replit.dev/"); // Cambia a tu URL de Replit
+    const SERVER_URL = "https://ca34f74a-7784-4b55-856b-eeff6da108d2-00-nnkn14i87gil.worf.replit.dev/"; // Reemplaza con tu URL
+    const socket = io(SERVER_URL);
 
-    socket.on("video-broadcast", (data) => {
-      const image = new Image();
-      image.src = "data:image/jpeg;base64," + data;
-      image.onload = () => {
-        canvas.width = image.width;
-        canvas.height = image.height;
-        ctx.drawImage(image, 0, 0);
-      };
+    const videoElement = document.getElementById("video");
+
+    socket.on("video_stream", (data) => {
+      videoElement.src = `data:image/jpeg;base64,${data.frame}`;
     });
   </script>
 </body>
