@@ -6,39 +6,23 @@
   <title>Transmisión de Video</title>
 </head>
 <body>
-  <h1>Transmisión de Video</h1>
-  <video id="localVideo" autoplay muted></video>
-  <div id="remoteVideos"></div>
+  <h1>Transmisión en Vivo</h1>
+  <canvas id="videoCanvas"></canvas>
   <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
   <script>
-    const socket = io();
+    const canvas = document.getElementById("videoCanvas");
+    const ctx = canvas.getContext("2d");
+    const socket = io("https://ca34f74a-7784-4b55-856b-eeff6da108d2-00-nnkn14i87gil.worf.replit.dev/"); // Cambia a tu URL de Replit
 
-    // Acceder a la cámara y el micrófono
-    navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
-      .then((stream) => {
-        const localVideo = document.getElementById("localVideo");
-        localVideo.srcObject = stream;
-        localVideo.play();
-
-        // Configurar MediaRecorder para capturar datos del video
-        const mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = (event) => {
-          socket.emit("video-stream", event.data);
-        };
-
-        // Enviar datos cada segundo
-        mediaRecorder.start(1000);
-
-        // Recibir datos de video desde otros clientes
-        socket.on("video-stream", (data) => {
-          const remoteVideo = document.createElement("video");
-          remoteVideo.src = URL.createObjectURL(new Blob([data]));
-          remoteVideo.autoplay = true;
-          document.getElementById("remoteVideos").appendChild(remoteVideo);
-        });
-      })
-      .catch((err) => console.error("Error al acceder a la cámara:", err));
+    socket.on("video-broadcast", (data) => {
+      const image = new Image();
+      image.src = "data:image/jpeg;base64," + data;
+      image.onload = () => {
+        canvas.width = image.width;
+        canvas.height = image.height;
+        ctx.drawImage(image, 0, 0);
+      };
+    });
   </script>
 </body>
 </html>
