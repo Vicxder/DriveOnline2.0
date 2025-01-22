@@ -1,12 +1,35 @@
-<button onclick="sendCommand('adelante')">Adelante</button>
-<button onclick="sendCommand('izquierda')">Izquierda</button>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ver transmisión</title>
+</head>
+<body>
+    <video id="remoteVideo" autoplay playsinline></video>
+    <script>
+        const socket = io("https://ca34f74a-7784-4b55-856b-eeff6da108d2-00-nnkn14i87gil.worf.replit.dev/"); // Cambia por la URL de tu servidor en Replit
 
-<script>
-    function sendCommand(command) {
-        fetch('https://ca34f74a-7784-4b55-856b-eeff6da108d2-00-nnkn14i87gil.worf.replit.dev/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ command })
+        const peerConnection = new RTCPeerConnection({
+            iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
         });
-    }
-</script>
+
+        peerConnection.ontrack = (event) => {
+            const remoteVideo = document.getElementById("remoteVideo");
+            remoteVideo.srcObject = event.streams[0];
+        };
+
+        socket.on("signal", async (data) => {
+            if (data.offer) {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                socket.emit("signal", { answer: peerConnection.localDescription });
+            } else if (data.answer) {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+            } else if (data.candidate) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
+        });
+    </script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+</body>
+</html>
