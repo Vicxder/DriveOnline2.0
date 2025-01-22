@@ -1,35 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Ver transmisión</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Stream Viewer</title>
 </head>
 <body>
-    <video id="remoteVideo" autoplay playsinline></video>
-    <script>
-        const socket = io("https://ca34f74a-7784-4b55-856b-eeff6da108d2-00-nnkn14i87gil.worf.replit.dev/"); // Cambia por la URL de tu servidor en Replit
+  <h1>Video Stream</h1>
+  <video id="remote-video" autoplay playsinline controls></video>
 
-        const peerConnection = new RTCPeerConnection({
-            iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-        });
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script>
+    // URL del servidor en Replit
+    const SERVER_URL = "https://ca34f74a-7784-4b55-856b-eeff6da108d2-00-nnkn14i87gil.worf.replit.dev/";
 
-        peerConnection.ontrack = (event) => {
-            const remoteVideo = document.getElementById("remoteVideo");
-            remoteVideo.srcObject = event.streams[0];
-        };
+    // Conexión con el servidor usando Socket.IO
+    const socket = io(SERVER_URL);
 
-        socket.on("signal", async (data) => {
-            if (data.offer) {
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-                const answer = await peerConnection.createAnswer();
-                await peerConnection.setLocalDescription(answer);
-                socket.emit("signal", { answer: peerConnection.localDescription });
-            } else if (data.answer) {
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-            } else if (data.candidate) {
-                await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-            }
-        });
-    </script>
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    // Recibir el video desde el servidor
+    socket.on("video-stream", (data) => {
+      console.log("Recibiendo datos de video");
+
+      // Crear un objeto URL para el flujo de video
+      const videoBlob = new Blob([data], { type: "video/webm" });
+      const videoUrl = URL.createObjectURL(videoBlob);
+
+      // Seleccionar el elemento de video y reproducir
+      const videoElement = document.getElementById("remote-video");
+      videoElement.src = videoUrl;
+      videoElement.play();
+    });
+
+    // Manejo de errores de conexión
+    socket.on("connect_error", (error) => {
+      console.error("Error de conexión con el servidor:", error);
+    });
+  </script>
 </body>
 </html>
