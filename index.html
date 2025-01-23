@@ -3,22 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Video Stream</title>
-  <script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
+  <title>Stream Viewer</title>
 </head>
 <body>
   <h1>Video Stream</h1>
-  <img id="video" alt="Streaming Video" style="width: 100%; max-width: 600px; border: 1px solid black;" />
-
+  <img id="video" alt="Streaming video" style="width: 640px; height: 480px; border: 1px solid black;" />
+  <script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
   <script>
-    const SERVER_URL = "https://ca34f74a-7784-4b55-856b-eeff6da108d2-00-nnkn14i87gil.worf.replit.dev/stream"; // URL del namespace en Replit
-    const socket = io(SERVER_URL); // Conexión al namespace
+    const video = document.getElementById("video");
+    const socket = io("https://your-replit-url.repl.co/stream");
 
-    const videoElement = document.getElementById("video");
-
-    // Escuchar los frames enviados por el servidor
     socket.on("video_stream", (data) => {
-      videoElement.src = `data:image/jpeg;base64,${data.frame}`;
+      const blob = new Blob([data], { type: "image/jpeg" });
+      const url = URL.createObjectURL(blob);
+      video.src = url;
     });
   </script>
 </body>
